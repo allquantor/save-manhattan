@@ -29,6 +29,7 @@ object SpaceLaserAreaCalculator {
 
   /**
     * Calculate the area of water.
+    *
     * @param s Expect an (left -> right) ordered skyline.
     * @return Area
     */
@@ -79,12 +80,12 @@ object SpaceLaserAreaCalculator {
       case Nil => 0
       case _ :: Nil => 0
       case first :: second :: Nil => calcArea(first, second)
-      case first :: second :: next :: tail => {
+      case first :: second :: next :: tail =>
         var (high, sHigh, local, global) = initials(first, second)
         val start = next :: tail toIndexedSeq
 
         for (i <- start.indices) {
-          var (current, previous, next) = iterationState(start, i)
+          val (current, previous, next) = iterationState(start, i)
 
           if (current < high && current <= sHigh) {
             local += `addToLocalArea in case of overflood`(previous, current)
@@ -101,8 +102,8 @@ object SpaceLaserAreaCalculator {
           }
         }
         global
-      }
     }
+
   }
 
 }
