@@ -6,72 +6,26 @@ import scala.util.Try
 
 
 object SpaceLaserAreaCalculator {
-
-  /*
-  def calculate(s: Seq[Building]): Area = {
-    s match {
-      case Nil => 0
-      case _ :: Nil => 0
-      case first :: second :: Nil => calcArea(first, second)
-      case first :: second :: next :: tail => {
-
-        // Local Area is the term describing the factor what should be decreased from the global area
-        // in case if we have the case of overflooding of a part on the graph.
-        var initLocalArea = calcArea(first, second)
-        val initArea = calcArea(first, second)
-
-        // Since in the iteration we need to keep track of the current highest
-        // and the second highest building. We distinguish here between the first and second.
-        val initHighest = if (first > second) first else second
-
-        val initSecondHighest = if (first > second) {
-          // In case that the first building is bigger than the second,
-          // we have the chance that the second will be flooded.
-          // We add the area of the second building to the local area
-          // to ensure the subtraction later is correct.
-          initLocalArea += calcArea(second)
-          second
-        } else {
-          first
-        }
-
-        // since we already have the calc for first and second
-        // we not need to repeat it.
-        (next :: tail).foldLeft(
-          // building triple
-          (first, second, next,
-            // state of the highest and second-highest
-            initHighest, initSecondHighest,
-            // local and global areas
-            initLocalArea, initArea)
-        ) { case ((_first, _second, _next,
-        highest, secondHighest,
-        localArea, globalArea),
-        currentBuilding) =>
-            if(currentBuilding < highest &&
-              currentBuilding <= secondHighest) {
-
-              val area = calcArea(_second, currentBuilding)
-
-              (_second,_next,_,
-                highest,secondHighest,
-                localArea + area + calcArea(currentBuilding),
-                globalArea + area
-              )
-            }
-          1
-
-
-        }
-
-        //
-
-
-      }
-
-    }
+  /**
+    *
+    * @param previous previous Building in the left
+    * @param current current looked Building
+    * @return area that could be probably covered with water and should be subtracted later
+    */
+  def `addToLocalArea in case of overflood`(previous:Building, current:Building): Area = {
+    calcArea(previous, current) + calcArea(current)
   }
-  */
+
+  /**
+    *
+    * @param highest the current highest building
+    * @param current the current considered building
+    * @param localArea the state of the current localArea
+    * @return the value should be added to the current area in case when new boundary (highest or second highest) is found.
+    */
+  def `update Area when new Boundary found`(highest:Building, current: Building, localArea: Area): Area = {
+    calcArea(highest, current) - localArea
+  }
 
   def cal2(s: Seq[Building]): Int = {
 
@@ -111,7 +65,7 @@ object SpaceLaserAreaCalculator {
         println(s"base case")
         println(s"highest $highest")
         println(s"second highest $secondHighest")
-        localArea += calcArea(previous, current) + calcArea(current)
+        localArea += `addToLocalArea in case of overflood`(previous, current)
         println(s"local area is set to $localArea")
         area += calcArea(previous, current)
         println(s"gloabal area is set to $area")
@@ -119,9 +73,9 @@ object SpaceLaserAreaCalculator {
         println("current is bigger than second highest")
         println(s"current:{$current}")
         println(s"second highest:{$secondHighest}")
-        area += calcArea(highest, current) - localArea
+        area += `update Area when new Boundary found`(highest, current,localArea)
         println(s"area is set to $area")
-        localArea = calcArea(highest, current) + calcArea(current)
+        localArea = `addToLocalArea in case of overflood`(highest, current)
         println(s"local area is set to $localArea")
         secondHighest = current
       } else if (current >= highest) {
@@ -130,7 +84,7 @@ object SpaceLaserAreaCalculator {
         println(s"highest $highest")
         println(s"calculate the area between highest and curent ${calcArea(highest, current)}")
         println(s"decreasing the local area ${localArea}")
-        area += calcArea(highest, current) - localArea
+        area += `update Area when new Boundary found`(highest, current,localArea)
         println(s"area is set to $area")
         highest = current
         println(s"new highest is set to ${highest}")
